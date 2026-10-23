@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EvoReport · 实习日报助手</title>
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="brand-mark">ER</span><div><strong>EvoReport</strong><small>个人工作记录</small></div></div>
+    <nav>
+      <button class="nav-item active" data-view="overview"><span>01</span>今日总览</button>
+      <button class="nav-item" data-view="projects"><span>02</span>项目管理</button>
+      <button class="nav-item" data-view="daily"><span>03</span>生成日报</button>
+      <button class="nav-item" data-view="history"><span>04</span>报告历史</button>
+      <button class="nav-item" data-view="evolution"><span>05</span>写作进化</button>
+    </nav>
+    <div class="service-state"><span class="pulse"></span><div><small>本地服务</small><strong id="service-status">检查中</strong></div></div>
+  </aside>
+
+  <main>
+    <header class="topbar"><div><p class="eyebrow" id="view-eyebrow">DAILY WORKSPACE</p><h1 id="view-title">今日总览</h1></div><div class="date-chip" id="today-chip"></div></header>
+
+    <section class="view active" id="view-overview">
+      <div class="hero">
+        <div><p class="eyebrow">YOUR WORK, GROUNDED IN FACTS</p><h2>让每天做过的事，<br><em>清晰地留下来。</em></h2><p>从本地 Git 记录中整理事实，由你确认后形成可追溯的日报与周报。</p></div>
+        <button class="primary large" id="quick-daily">一键汇总今日工作 <span>→</span></button>
+      </div>
+      <div class="stats-grid">
+        <article><span>已管理项目</span><strong id="stat-projects">0</strong><small>本地 Git 与普通项目</small></article>
+        <article><span>已生成报告</span><strong id="stat-reports">0</strong><small>日报与周报</small></article>
+        <article><span>已确认终稿</span><strong id="stat-confirmed">0</strong><small>可用的个人样本</small></article>
+        <article class="accent"><span>评测数据集</span><strong id="stat-dataset">0</strong><small>Validation + Holdout</small></article>
+      </div>
+      <div class="two-column">
+        <div class="panel form-panel"><p class="eyebrow">QUICK CAPTURE</p><h3>随手记一条</h3><p class="muted">白天只需留下一句话，晚上“一键汇总”时会自动写入日报。</p><form id="quick-note-form"><label>关联项目（可选）<select id="quick-note-project"><option value="">不关联项目</option></select></label><label>今日记录<textarea id="quick-note-content" rows="3" maxlength="1000" required placeholder="例如：解决了启动报错，并补了回归测试"></textarea></label><button class="primary" type="submit">保存记录</button></form></div>
+        <div class="panel"><div class="panel-heading"><div><p class="eyebrow">TODAY'S NOTES</p><h3>今日已记录</h3></div></div><div id="today-notes" class="stack-list empty-state">还没有快速记录。</div></div>
+      </div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">RECENT</p><h3>最近报告</h3></div><button class="ghost" data-goto="history">查看全部</button></div><div id="recent-reports" class="report-list empty-state">还没有报告，从今天的第一份开始。</div></div>
+    </section>
+
+    <section class="view" id="view-projects">
+      <div class="two-column">
+        <div class="panel form-panel"><p class="eyebrow">ADD REPOSITORY</p><h2>添加本地项目</h2><p class="muted">只读取 Git 提交、分支和变更摘要，不会修改项目文件。</p>
+          <form id="project-form"><label>项目名称<input id="project-name" required maxlength="80" placeholder="例如：毕业设计后端"></label><label>本地绝对路径<input id="project-path" required placeholder="E:\Projects\my-app"></label><label>项目类型<select id="project-type"><option value="git">Git 项目（自动采集提交）</option><option value="plain">普通项目（仅手动记录）</option></select></label><p class="muted" id="project-type-hint">Git 项目需选择包含 .git 的根目录。</p><button class="primary" type="submit">验证并添加</button></form>
+        </div>
+        <div class="panel"><div class="panel-heading"><div><p class="eyebrow">REPOSITORIES</p><h3>已管理项目</h3></div></div><div id="project-list" class="stack-list"></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-daily">
+      <div class="daily-layout">
+        <form class="panel daily-form" id="daily-form">
+          <div class="panel-heading"><div><p class="eyebrow">DAILY INPUT</p><h3>今天做了什么？</h3></div><input type="date" id="report-date" required></div>
+          <div class="smart-capture"><label>快速整理一段工作描述 <small>不会自动保存，整理后请检查表单内容</small><textarea id="smart-summary" rows="3" maxlength="10000" placeholder="例如：今天修复了对账异常并完成接口联调，明天继续优化导出功能。"></textarea></label><button class="ghost" id="smart-parse" type="button">自动拆分到表单</button></div>
+          <fieldset><legend>选择项目</legend><div id="project-options" class="project-options"></div></fieldset>
+          <label>补充完成事项 <small>每行一条</small><textarea id="daily-completed" rows="4" placeholder="例如：完成登录页联调"></textarea></label>
+          <label>遇到的问题 <small>每行一条</small><textarea id="daily-problems" rows="4" placeholder="例如：本地 Redis 连接配置不一致"></textarea></label>
+          <label>明日计划 <small>每行一条</small><textarea id="daily-tomorrow" rows="4" placeholder="例如：补充权限模块测试"></textarea></label>
+          <button class="primary" type="submit">根据事实生成初稿</button>
+          <p class="muted" id="daily-queue-status" aria-live="polite">日报队列状态：正在读取。</p>
+        </form>
+        <div class="panel editor-panel"><div class="panel-heading"><div><p class="eyebrow">DRAFT</p><h3>可编辑初稿</h3></div><span class="status-pill" id="draft-status">尚未生成</span></div><textarea id="report-editor" class="report-editor" placeholder="生成后，你可以在这里修改。"></textarea><div id="final-review" class="final-review" hidden><strong>终稿审查</strong><p class="muted">以下是文本匹配提示，请核对来源；匹配度不是事实真伪的概率。</p><ul id="final-review-issues"></ul><div class="editor-actions"><button class="ghost" id="review-edit" type="button">返回修改</button><button class="primary" id="review-acknowledge" type="button">核对后仍确认</button></div></div><div class="editor-actions"><button class="ghost" id="copy-report" type="button">复制</button><button class="primary" id="confirm-report" type="button" disabled>确认为终稿</button></div></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-history">
+      <div class="history-toolbar"><div><p class="eyebrow">ARCHIVE</p><h2>报告历史</h2></div><div class="editor-actions"><button class="ghost" id="export-confirmed" type="button">导出已确认报告</button><button class="ghost" id="create-backup" type="button">创建数据备份</button><form id="weekly-form"><input type="date" id="week-start" required><button class="secondary" type="submit">生成该周周报</button></form></div></div>
+      <div class="panel form-panel"><h3>按项目查找任务记录</h3><p class="muted">按报告创建时选择的项目筛选；多项目日报中的事实会分别标注来源，手工事实若未指定项目则保持未归属。</p><form id="history-filter-form" class="editor-actions"><label>项目<select id="history-project"><option value="">全部项目</option></select></label><label>开始日期<input id="history-start" type="date"></label><label>结束日期<input id="history-end" type="date"></label><button class="secondary" type="submit">筛选</button><button class="ghost" id="history-filter-clear" type="button">清除</button></form></div>
+      <div class="panel form-panel"><p class="eyebrow">HISTORICAL IMPORT</p><h3>导入以前的真实日报</h3><p class="muted">保留原文并作为“历史导入”样本，用于学习你的报告结构和语气。</p><form id="historical-import-form"><label>日报日期<input type="date" id="historical-date" required></label><label>日报原文<textarea id="historical-content" rows="8" maxlength="100000" required placeholder="粘贴你以前的真实日报。不会被自动改写。"></textarea></label><button class="primary" type="submit">导入为个人历史样本</button></form></div>
+      <div class="panel form-panel"><p class="eyebrow">BACKUP RESTORE</p><h3>从备份恢复</h3><p class="muted">选择 EvoReport 的 .db 备份文件，先预览数据量。确认恢复时会自动保存当前数据库。</p><label>选择数据库备份<input type="file" id="restore-file" accept=".db,application/octet-stream"></label><button class="ghost" id="preview-backup" type="button">检查并预览备份</button><div id="restore-preview" class="muted" aria-live="polite">尚未选择备份。</div><button class="primary" id="restore-backup" type="button" disabled>确认恢复此备份</button></div>
+      <div class="history-layout"><div class="panel"><div id="history-list" class="report-list"></div></div><div class="panel preview-panel"><div class="panel-heading"><h3>报告内容</h3><div><button class="ghost" id="resume-history" hidden>继续编辑草稿</button><button class="ghost" id="export-history">导出 Markdown</button><button class="ghost" id="export-history-word">导出 Word</button><button class="ghost" id="copy-history">复制</button></div></div><pre id="history-preview">选择一份报告查看详情。</pre></div></div>
+      <div class="panel"><h3>本次事实与来源</h3><div id="history-facts" class="stack-list empty-state">选择一份日报查看归档事实。</div></div>
+      <div class="panel"><h3>终稿审查人工标注</h3><p class="muted">系统会展示事项的动作、对象和完成状态，并给出“有证据／待核实／无证据”判断。请核对上方来源后逐项标注；Critic 没有提示的事项也需要标注。仅使用已确认、属于写作 Validation 的系统日报；审查基准冻结后，新标注另作审查 Holdout。</p><div id="review-label-list" class="stack-list empty-state">选择一份日报查看可标注事项。</div><div id="review-missed-section" hidden><h4>补标漏检事项</h4><p class="muted">选择所在行并输入无来源子句的原文。子句可完整位于一个已识别事项内，此时父事项会标为“无来源”，基准按父事项计一次；独立片段单独计数。</p><div id="review-missed-list" class="stack-list"></div><form id="review-missed-form" class="editor-actions"><label>所在行<select id="review-missed-line"></select></label><label>漏检片段原文<input id="review-missed-text" type="text" maxlength="1000" required placeholder="从所选行复制完整片段"></label><button class="ghost" type="submit">添加漏检片段</button></form></div><button class="secondary" id="save-review-labels" type="button" hidden>保存整篇标注</button></div>
+      <div class="panel"><h3>审查基准结果（内置 60% 规则）</h3><p class="muted">上方逐项提示来自当前启用的规则；此处仅展示 Validation 的内置规则结果。场景由人工选择，修改冻结样本的场景会使基准失效。</p><div id="review-benchmark" class="stack-list empty-state">尚无人工标注。</div></div>
+    </section>
+
+    <section class="view" id="view-evolution">
+      <div class="evolution-hero"><div><p class="eyebrow">EVALUATED EVOLUTION</p><h2>不猜你的偏好，<br><em>用终稿证明改进。</em></h2></div><div><button class="secondary" id="create-benchmark" type="button">建立新基准</button><button class="primary" id="run-evolution">生成并评测候选策略</button></div></div>
+      <div id="dataset-gate" class="gate-card"></div>
+      <div class="panel"><p class="eyebrow">BENCHMARK COVERAGE</p><h3>Validation 样本覆盖</h3><p class="muted">仅统计已确认的真实日报；Holdout 只显示数量，不参与覆盖分析。篇幅按终稿字符数分档，提示不影响建立基准。</p><div id="benchmark-coverage" class="stack-list empty-state">正在读取样本覆盖情况。</div></div>
+      <div class="panel form-panel"><p class="eyebrow">CRITIC SKILLS</p><h3>Critic Skill 版本与离线对照</h3><p class="muted">Skill 使用受控 JSON，只允许调整匹配阈值和字符重合度权重；敏感信息、事实、章节和无来源检查始终开启。候选只从冻结 Validation 生成或手动创建；Holdout 每版只门禁一次。</p><button class="ghost" id="create-critic-benchmark" type="button">冻结审查 Validation</button><button class="ghost" id="propose-critic-skill" type="button">从 Validation 生成候选 Skill</button><form id="critic-rule-form" class="editor-actions"><label>候选匹配阈值（%）<input id="critic-rule-threshold" type="number" min="40" max="80" step="1" value="70" required></label><label>字符重合度权重（%）<input id="critic-rule-ngram-weight" type="number" min="0" max="50" step="1" value="0" required></label><button class="ghost" type="submit">保存手动候选</button></form><div id="critic-rule-list" class="stack-list empty-state">正在读取 Critic Skill。</div><h4>启用后审查监测</h4><div id="critic-rule-monitor" class="stack-list empty-state">尚未启用候选 Skill。</div></div>
+      <div class="panel"><p class="eyebrow">POST-ACTIVATION CHECK</p><h3>上线后本地监测</h3><div id="post-activation-monitor" class="stack-list empty-state">正在读取策略监测结果。</div></div>
+      <div class="panel form-panel"><p class="eyebrow">WRITER INSTRUCTIONS</p><h3>Writer 指令版本</h3><p class="muted">只补充写作风格；事实约束和终稿审查规则保持固定。新版本需在固定基准上通过 Validation 与一次 Holdout 门禁后才能首次启用，旧版可切回。评测只在你点击后调用已配置模型，按可用样本需要 8–16 次调用，含中断重试最多 18 次，可能产生模型费用。</p><form id="writer-prompt-form"><label>风格补充<textarea id="writer-prompt-addendum" rows="3" maxlength="500" required placeholder="例如：用简洁客观的语气，突出已完成的结果。"></textarea></label><button class="ghost" type="submit">保存新版本</button></form><div id="writer-prompt-list" class="stack-list empty-state">正在读取指令版本。</div><div id="writer-prompt-switches" class="muted"></div><h4>启用后质量监测</h4><div id="writer-prompt-monitor" class="stack-list empty-state">尚无可监测的指令切换。</div></div>
+      <div class="two-column"><div class="panel"><p class="eyebrow">WRITING PROFILE</p><h3>你的写作画像</h3><div id="writing-profile" class="stack-list empty-state">正在读取已确认的真实日报。</div></div><div class="panel"><p class="eyebrow">EVALUATION EXPLAINED</p><h3>最近评测解释</h3><div id="evaluation-explanation" class="stack-list empty-state">还没有评测记录。</div></div></div>
+      <div class="panel form-panel"><p class="eyebrow">MEMORY</p><h3>写作与项目记忆</h3><p class="muted">手动偏好用于新日报；有效的项目备注会优先进入 Planner 覆盖计划，备注不会当作今日工作事实。项目备注可设置到期日，当天仍有效；留空则长期有效。评测学习的偏好通过策略版本生效。</p><div class="two-column"><form id="personal-memory-form"><label>偏好项目<select id="memory-key"><option value="numbered">使用编号列表</option><option value="include_statistics">显示开发统计</option><option value="max_item_length">单条字数上限</option></select></label><label id="memory-boolean-label">设置<select id="memory-boolean"><option value="true">启用</option><option value="false">不启用</option></select></label><label id="memory-length-label" hidden>字数上限<input id="memory-length" type="number" min="40" max="160" value="100"></label><button class="ghost" type="submit">保存写作偏好</button></form><form id="project-memory-form"><label>项目<select id="memory-project"></select></label><label>项目背景备注<textarea id="memory-note" rows="3" maxlength="300" required placeholder="例如项目缩写、长期目标；不会写成今日完成事项。"></textarea></label><label>有效至（可选）<input id="memory-expires-on" type="date"></label><button class="ghost" type="submit">保存项目备注</button></form></div><div id="memory-list" class="stack-list empty-state">还没有记忆。</div></div>
+      <div class="panel"><h3>待确认的长期记忆</h3><p class="muted">个人偏好来自不同日期重复出现的终稿修改；项目候选来自重复或相近的约束短句。系统会提示冲突、合并对象和过期匹配，采纳后才会影响新日报。</p><div id="memory-suggestion-list" class="stack-list empty-state">正在检查历史记录。</div></div>
+      <div class="two-column"><div class="panel"><p class="eyebrow">VERSIONS</p><h3>策略版本</h3><div id="strategy-list" class="stack-list"></div></div><div class="panel"><p class="eyebrow">RUNS</p><h3>最近评测</h3><div id="run-list" class="stack-list"></div></div></div>
+      <div class="panel"><div class="panel-heading"><div><p class="eyebrow">AGENT TRACE</p><h3>多 Agent 执行记录</h3></div><div><span id="llm-status" class="status-pill">模型未配置</span><span id="agent-summary" class="status-pill">暂无记录</span></div></div><p class="muted">Planner 根据本次来源生成任务及依赖；Fact 按依赖逐项执行并形成证据，Writer 只接收草稿、事实和需返工的任务编号，Critic 独立核对候选与证据，Gate 只接收审查摘要。角色在独立子进程中执行。</p><div id="agent-run-list" class="stack-list empty-state">生成日报或运行策略评测后，这里会显示各角色的执行摘要。</div></div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="/assets/app.js"></script>
+</body>
+</html>
